@@ -4,14 +4,14 @@ const User = require('../../mongoose/model/user')
 
 router.post(
     '/signup',
-    (req, res) => {
-        const user = new User(
-            {
-                name: 'sagar',
-                age: 25
-            }
-        ).save()
-        res.send(user)
+    async (req, res) => {
+        try {
+            const user = await new User(req.body).save()
+            res.send(user)
+        } catch (error) {
+            res.status(400)
+                .send(error)
+        }
     }
 )
 
