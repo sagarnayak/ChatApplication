@@ -36,6 +36,10 @@ UserSchema.pre(
     }
 )
 
+UserSchema.methods.testFunction = function () {
+    console.log("here i am")
+}
+
 const User = mongoose.model(
     'User', UserSchema
 )

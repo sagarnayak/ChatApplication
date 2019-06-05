@@ -7,6 +7,7 @@ router.post(
     async (req, res) => {
         try {
             const user = await new User(req.body).save()
+            user.testFunction()
             res.send(user)
         } catch (error) {
             res.status(400)
