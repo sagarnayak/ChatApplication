@@ -10,3 +10,10 @@ app.listen(
         console.log(chalk.green('express up on ') + chalk.green.inverse(port));
     }
 )
+
+const test = () => {
+    const date = new Date(0)
+    console.log(date)
+}
+
+test()

@@ -36,8 +36,14 @@ UserSchema.pre(
     }
 )
 
-UserSchema.methods.testFunction = function () {
-    console.log("here i am")
+UserSchema.methods.toJSON = function () {
+    const user = this.toObject()
+    delete user.password
+    return user
+}
+
+UserSchema.statics.staticFunction = () => {
+    console.log('static called')
 }
 
 const User = mongoose.model(
