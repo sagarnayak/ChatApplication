@@ -9,6 +9,11 @@ const OtpSchema = mongoose.Schema(
         requestedUser: {
             type: mongoose.Schema.Types.ObjectId,
             required: true
+        },
+        lifeTime: {
+            type: Date,
+            default: Date.now,
+            expires: process.env.OTP_VALIDITY_MIN + 'm'
         }
     },
     {
@@ -24,6 +29,10 @@ OtpSchema.methods.isValid = function () {
     if (diffInMin < process.env.OTP_VALIDITY_MIN)
         return true
     return false
+}
+
+OtpSchema.statics.cleanUp = function () {
+    console.log('otp cleanup started')
 }
 
 const Otp = mongoose.model('Otp', OtpSchema)

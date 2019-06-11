@@ -2,21 +2,11 @@ const express = require('express')
 const router = express.Router()
 const User = require('../../mongoose/model/user')
 const Otp = require('../../mongoose/model/otp')
-const { sendWelComeMail, sendForgotPasswordOTP } = require('../../sgMail/emailClient')
+const { sendWelComeMail, sendForgotPasswordOTP, sendGoodByeEmail } = require('../../sgMail/emailClient')
 const auth = require('../middleware/auth')
 const validator = require('validator')
 const multer = require('multer')
-const upload = multer(
-    {
-        limits: {
-            fileSize: 1000000
-        },
-        fileFilter(req, file, cb) {
-            if (!file.originalname.match(/\.(jpg|jpeg|png)/))
-                return cb(new Error('please upload a picture'))
-        }
-    }
-)
+const sharp = require('sharp')
 
 router.post(
     '/signup',
@@ -102,19 +92,138 @@ router.post(
     }
 )
 
+router.post(
+    '/logout',
+    auth,
+    async (req, res) => {
+        try {
+            const user = req.user
+            user.tokens = user.tokens.filter(
+                (token) => {
+                    return token.token !== req.token
+                }
+            )
+            await user.save()
+
+            res.send()
+        } catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    }
+)
+
+router.post(
+    '/logoutAll',
+    auth,
+    async (req, res) => {
+        try {
+            const user = req.user
+            user.tokens = []
+            await user.save()
+
+            res.send()
+        } catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    }
+)
+
+router.patch(
+    '/updateUser',
+    auth,
+    async (req, res) => {
+        try {
+            const fieldsToUpdate = Object.keys(req.body)
+            const allowedUpdates = ['name', 'age']
+            const isValidReq = fieldsToUpdate.every(
+                (field) => {
+                    return allowedUpdates.includes(field)
+                }
+            )
+            if (!isValidReq)
+                return res.status(400).send('only name age can be updated')
+
+            fieldsToUpdate.forEach(
+                (field) => {
+                    req.user[field] = req.body[field]
+                }
+            )
+            await req.user.save()
+            res.send()
+        } catch (error) {
+            res.status(400).send()
+        }
+    }
+)
+
+router.get(
+    '/me',
+    auth,
+    (req, res) => {
+        res.send(req.user)
+    }
+)
+
+const upload = multer(
+    {
+        limits: {
+            fileSize: 1000000
+        },
+        fileFilter(req, file, cb) {
+            if (!file.originalname.match(/\.(jpg|jpeg|png)$/))
+                return cb(new Error('please upload a picture'))
+
+            cb(undefined, true)
+        }
+    }
+)
+
 router.patch(
     '/updateAvatar',
     auth,
     upload.single('avatar'),
     async (req, res) => {
-        const avatar = req.file
-        if (!avatar)
-            return res.status(400).send('please upload a avatar')
-        console.log('the id is ' + req.body.userId)
-        res.send('here')
+        try {
+            const avatar = req.file
+            if (!avatar)
+                return res.status(400).send('please upload a avatar')
+            const buffer = await sharp(avatar.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
+            req.user.avatar = buffer
+            await req.user.save()
+            res.send('updated your avatar on ' + req.get('host') + '/myAvatar')
+        } catch (error) {
+            res.status(400).send('error')
+        }
     },
     (error, req, res, next) => {
         res.status('400').send({ error: 'please upload a picture' })
+    }
+)
+
+router.get(
+    '/myAvatar',
+    auth,
+    (req, res) => {
+        if (!req.user.avatar)
+            return res.status(404).send()
+
+        res.set('Content-Type', 'image/png').send(req.user.avatar)
+    }
+)
+
+router.delete(
+    '/removeMe',
+    auth,
+    async (req, res) => {
+        try {
+            sendGoodByeEmail(req.user.email, req.user.name)
+            await req.user.remove()
+            res.send()
+        } catch (error) {
+            res.status(400).send()
+        }
     }
 )
 
