@@ -11,4 +11,21 @@ app.use(defaultRouter)
 const http = require('http')
 const server = http.createServer(app)
 
-module.exports = server
+const socket = require('socket.io')
+const io = socket(
+    server,
+    {
+        allowRequest(
+            reqData,
+            callBack
+        ) {
+            console.log('socket middleware')
+            callBack(undefined, true)
+        }
+    }
+)
+
+module.exports = {
+    server,
+    io
+}
