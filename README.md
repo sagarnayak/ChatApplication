@@ -9,3 +9,5 @@ SENDGRID_API_KEY=
 OTP_LIB_SECRET=
 OTP_VALIDITY_MIN=2
 ```
+
+Android Client - https://github.com/sagarnayak/ChatApplicationAndroid.git
