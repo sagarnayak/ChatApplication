@@ -7,11 +7,13 @@ const UserSchema = mongoose.Schema(
     {
         name: {
             type: String,
-            required: true
+            trim: true,
+            required: [true, 'Please provide name']
         },
         email: {
             type: String,
-            required: true,
+            trim: true,
+            required: [true, 'Please provide email'],
             unique: true,
             validate(email) {
                 if (!validator.isEmail(email))
@@ -20,13 +22,15 @@ const UserSchema = mongoose.Schema(
         },
         age: {
             type: Number,
-            required: true,
-            min: 1
+            trim: true,
+            required: [true, 'Please provide age'],
+            min: [1, 'Please provide valid age']
         },
         password: {
             type: String,
-            required: true,
-            minlength: 6
+            trim: true,
+            required: [true, 'Please provide a password'],
+            minlength: [6, 'Please provide password with minimum length 6']
         },
         tokens: [
             {

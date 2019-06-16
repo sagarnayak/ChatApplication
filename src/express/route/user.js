@@ -7,6 +7,7 @@ const auth = require('../middleware/auth')
 const validator = require('validator')
 const multer = require('multer')
 const sharp = require('sharp')
+const { createGenericError } = require('../../util/errorMaster')
 
 router.post(
     '/signup',
@@ -17,8 +18,22 @@ router.post(
             sendWelComeMail(user.email, user.name)
             res.status(201).send({ user, token })
         } catch (error) {
+            if (error.name === 'ValidationError') {
+                if (error.errors.name) {
+                    return res.status(400).send(createGenericError(error.errors.name.message))
+                }
+                if (error.errors.email) {
+                    return res.status(400).send(createGenericError(error.errors.email.message))
+                }
+                if (error.errors.age) {
+                    return res.status(400).send(createGenericError(error.errors.age.message))
+                }
+                if (error.errors.password) {
+                    return res.status(400).send(createGenericError(error.errors.password.message))
+                }
+            }
             if (error.code === 11000)
-                return res.status(400).send({ error: 'User with same email already exist.' })
+                return res.status(400).send(createGenericError('User with same email already exist.'))
             res.status(400).send(error)
         }
     }
@@ -30,7 +45,7 @@ router.get(
         try {
             const user = await User.findOne({ email: req.params.emailId })
             if (!user)
-                throw new Error()
+                return res.status(400).send(createGenericError('Can not sed OTP the email'))
 
             const randomOtp = Math.floor(100000 + Math.random() * 900000)
             const otp = new Otp({ otp: randomOtp, requestedUser: user._id })
@@ -39,7 +54,7 @@ router.get(
             res.send('done sending the otp to mail')
         } catch (error) {
             console.log(error)
-            res.status(500).send()
+            res.status(400).send(createGenericError('Something went wrong.'))
         }
     }
 )
@@ -51,24 +66,29 @@ router.post(
             const newPassword = req.body.newPassword
             const otp = req.body.otp
             if (!newPassword || !otp)
-                return res.status(400).send({ error: 'provide otp and new password' })
+                return res.status(400).send(createGenericError('provide otp and new password'))
 
             const otpFromDb = await Otp.findOne({ otp: otp })
             if (!otpFromDb || !otpFromDb.isValid()) {
-                if (otpFromDb)
-                    await otpFromDb.remove()
-                return res.status(400).send({ error: 'OTP is not valid' })
+                return res.status(400).send(createGenericError('OTP is not valid'))
             }
 
             const user = await User.findOne({ _id: otpFromDb.requestedUser })
             if (!user)
-                return res.status(400).send({ error: 'OTP is not valid' })
+                return res.status(400).send(createGenericError('OTP is not valid'))
 
-            await user.updatePassword(newPassword)
-            await otpFromDb.remove()
-            res.send()
+            try {
+                await user.updatePassword(newPassword)
+                await otpFromDb.remove()
+                res.send()
+            } catch (error) {
+                if (error.name === 'ValidationError' && error.errors.password) {
+                    return res.status(400).send(createGenericError(error.errors.password.message))
+                }
+                res.status(400).send(error)
+            }
         } catch (error) {
-            res.status(400).send({ error })
+            res.status(400).send(error)
         }
     }
 )
@@ -81,11 +101,11 @@ router.post(
 
         const user = await User.findOne({ email: req.body.email })
         if (!user)
-            return res.status(401).send({ error: 'authentication failure' })
+            return res.status(401).send(createGenericError('authentication failure'))
 
         const passwordMatched = await user.isPassword(req.body.password)
         if (!passwordMatched)
-            return res.status(401).send({ error: 'authentication failure' })
+            return res.status(401).send(createGenericError('authentication failure'))
 
         const token = await user.generateAuthToken()
         res.send({ user, token })
@@ -143,17 +163,27 @@ router.patch(
                 }
             )
             if (!isValidReq)
-                return res.status(400).send('only name age can be updated')
+                return res.status(400).send(createGenericError('only name age can be updated'))
 
             fieldsToUpdate.forEach(
                 (field) => {
                     req.user[field] = req.body[field]
                 }
             )
-            await req.user.save()
-            res.send()
+            try {
+                await req.user.save()
+                res.send()
+            } catch (error) {
+                if (error.name === 'ValidationError') {
+                    if (error.errors.name)
+                        return res.status(400).send(createGenericError(error.errors.name.message))
+                    if (error.errors.age)
+                        return res.status(400).send(createGenericError(error.errors.age.message))
+                }
+                res.status(400).send(error)
+            }
         } catch (error) {
-            res.status(400).send()
+            res.status(400).send(error)
         }
     }
 )
@@ -198,7 +228,7 @@ router.patch(
         }
     },
     (error, req, res, next) => {
-        res.status('400').send({ error: 'please upload a picture' })
+        res.status(400).send(createGenericError('please upload a picture'))
     }
 )
 
