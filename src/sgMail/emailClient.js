@@ -26,10 +26,28 @@ const sendForgotPasswordOTP = async (emailId, otp) => {
             {
                 to: emailId,
                 from: 'snkumar.nayak@gmail.com',
+                subject: 'Reset Password OTP',
+                text:
+                    `Hi
+                The otp to reset your password is ${otp}. valid for ${process.env.OTP_VALIDITY_MIN} minutes
+            `
+            }
+        )
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+const sendResetPaasswordEmail = async (emailId) => {
+    try {
+        await sgMail.send(
+            {
+                to: emailId,
+                from: 'snkumar.nayak@gmail.com',
                 subject: 'Reset Password',
                 text:
                     `Hi
-                The otp to reset your password is ${otp}
+                Yoru password for chat application has been changed.
             `
             }
         )
@@ -59,5 +77,6 @@ const sendGoodByeEmail = async (emailId, name) => {
 module.exports = {
     sendWelComeMail,
     sendForgotPasswordOTP,
-    sendGoodByeEmail
+    sendGoodByeEmail,
+    sendResetPaasswordEmail
 }

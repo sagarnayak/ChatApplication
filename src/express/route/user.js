@@ -2,7 +2,12 @@ const express = require('express')
 const router = express.Router()
 const User = require('../../mongoose/model/user')
 const Otp = require('../../mongoose/model/otp')
-const { sendWelComeMail, sendForgotPasswordOTP, sendGoodByeEmail } = require('../../sgMail/emailClient')
+const {
+    sendWelComeMail,
+    sendForgotPasswordOTP,
+    sendGoodByeEmail,
+    sendResetPaasswordEmail
+} = require('../../sgMail/emailClient')
 const auth = require('../middleware/auth')
 const validator = require('validator')
 const multer = require('multer')
@@ -80,6 +85,7 @@ router.post(
             try {
                 await user.updatePassword(newPassword)
                 await otpFromDb.remove()
+                sendResetPaasswordEmail(user.email)
                 res.send()
             } catch (error) {
                 if (error.name === 'ValidationError' && error.errors.password) {
