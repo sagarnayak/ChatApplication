@@ -263,4 +263,13 @@ router.delete(
     }
 )
 
+router.get(
+    '/avatarUpdateTimeStamp',
+    auth,
+    (req, res) => {
+        if (!req.user.avatar)
+            return res.status(400).send(createGenericError('Can not find your avatar'))
+    }
+)
+
 module.exports = router
