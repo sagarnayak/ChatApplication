@@ -151,7 +151,7 @@ router.post(
             const user = req.user
 
             sendPingBackNotification(req.user, req.token)
-            
+
             user.tokens = []
             await user.save()
 
@@ -241,7 +241,8 @@ router.patch(
             )
             res.send('updated your avatar on ' + req.get('host') + '/myAvatar')
         } catch (error) {
-            res.status(400).send('error')
+            console.log(error)
+            res.status(400).send(error)
         }
     },
     (error, req, res, next) => {
