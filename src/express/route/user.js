@@ -13,6 +13,10 @@ const validator = require('validator')
 const multer = require('multer')
 const sharp = require('sharp')
 const { createGenericError } = require('../../util/errorMaster')
+const {
+    sendAvatarUpdatedNotification,
+    sendPingBackNotification
+} = require('../../firebase/cloudMessage')
 
 router.post(
     '/signup',
@@ -145,6 +149,9 @@ router.post(
     async (req, res) => {
         try {
             const user = req.user
+
+            sendPingBackNotification(req.user, req.token)
+            
             user.tokens = []
             await user.save()
 
@@ -228,6 +235,10 @@ router.patch(
             const buffer = await sharp(avatar.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
             req.user.avatar = buffer
             await req.user.save()
+            sendAvatarUpdatedNotification(
+                req.user,
+                req.token
+            )
             res.send('updated your avatar on ' + req.get('host') + '/myAvatar')
         } catch (error) {
             res.status(400).send('error')
@@ -263,12 +274,55 @@ router.delete(
     }
 )
 
+router.patch(
+    '/updateFCMToken',
+    auth,
+    async (req, res) => {
+        if (!req.body.fcmToken)
+            res.status(400).send(createGenericError('Please provide fcm token'))
+        try {
+            let indexToUpdate = -1
+            req.user.tokens.forEach(
+                (token, index) => {
+                    if (token.token === req.token) {
+                        indexToUpdate = index
+                    }
+                }
+            )
+            if (indexToUpdate != -1) {
+                req.user.tokens[indexToUpdate].fcmToken = req.body.fcmToken
+                await req.user.save()
+                res.send()
+            } else {
+                res.status(400).send(createGenericError('unable to update fcm token'))
+            }
+        } catch (error) {
+            console.log(error)
+            res.status(400).send(error)
+        }
+    }
+)
+
+router.get(
+    '/ping',
+    auth,
+    (req, res) => {
+        res.send()
+    }
+)
+
 router.get(
     '/avatarUpdateTimeStamp',
     auth,
     (req, res) => {
         if (!req.user.avatar)
-            return res.status(400).send(createGenericError('Can not find your avatar'))
+            return res.status(404).send(createGenericError('Can not find your avatar'))
+
+        res.send(
+            {
+                timeStamp: req.user.updatedAt
+            }
+        )
     }
 )
 
