@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs')
 const validator = require('validator')
 const jwt = require('jsonwebtoken')
 
+require('util').inspect.defaultOptions.depth = null
+
 const UserSchema = mongoose.Schema(
     {
         name: {
@@ -52,6 +54,12 @@ const UserSchema = mongoose.Schema(
         timestamps: true
     }
 )
+
+UserSchema.virtual('rooms', {
+    ref: 'Room',
+    localField: '_id',
+    foreignField: 'members.user'
+})
 
 UserSchema.pre(
     'save',

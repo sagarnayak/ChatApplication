@@ -307,7 +307,17 @@ router.patch(
 router.get(
     '/ping',
     auth,
-    (req, res) => {
+    async (req, res) => {
+        try {
+            await req.user.populate(
+                {
+                    path: 'rooms'
+                }
+            ).execPopulate()
+            console.log(req.user.rooms)
+        } catch (error) {
+            console.log(error)
+        }
         res.send()
     }
 )
