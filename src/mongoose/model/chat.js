@@ -14,6 +14,26 @@ const ChatSchema = mongoose.Schema(
         room: {
             type: mongoose.Schema.Types.ObjectId,
             required: true
+        },
+        sentTo: [
+            {
+                user: {
+                    type: mongoose.Schema.Types.ObjectId
+                }
+            }
+        ],
+        sentToAll: {
+            type: Boolean
+        },
+        readBy: [
+            {
+                user: {
+                    type: mongoose.Schema.Types.ObjectId
+                }
+            }
+        ],
+        readByAll: {
+            type: Boolean
         }
     },
     {

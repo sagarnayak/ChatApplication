@@ -16,15 +16,20 @@ const RoomSchema = mongoose.Schema(
         ]
     },
     {
-        timestamps: true
+        timestamps: true,
+        toObject: { virtuals: true },
+        toJSON: { virtuals: true }
     }
 )
 
-RoomSchema.virtual('chats', {
-    ref: 'Chat',
-    localField: '_id',
-    foreignField: 'room'
-})
+RoomSchema.virtual(
+    'users',
+    {
+        ref: 'User',
+        localField: 'members.user',
+        foreignField: '_id'
+    }
+)
 
 const Room = mongoose.model('Room', RoomSchema)
 
