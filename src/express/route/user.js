@@ -261,6 +261,21 @@ router.get(
     }
 )
 
+router.get(
+    '/profilePicture/:id',
+    async (req, res) => {
+        try {
+            const user = await User.findOne({ _id: req.params.id })
+            if (!user || !user.avatar)
+                return res.status(404).send()
+
+            res.set('Content-Type', 'image/png').send(user.avatar)
+        } catch (error) {
+            res.status(404).send()
+        }
+    }
+)
+
 router.delete(
     '/removeMe',
     auth,
