@@ -15,7 +15,7 @@ router.get(
         ) {
             query = Room.find(
                 {
-                    name: RegExp(req.query.containing)
+                    name: RegExp(req.query.containing, 'i')
                 }
             )
                 .limit(
@@ -97,21 +97,45 @@ router.get(
     }
 )
 
-router.get(
+router.post(
     '/createRoom',
+    auth,
     async (req, res) => {
-        const room = Room(
-            {
-                name: 'room three',
-                members: [
+        try {
+            if (
+                req.body.name &&
+                req.body.members
+            ) {
+                const membersArray = []
+                membersArray.push(
                     {
-                        user: '5d19c10ad78cbc19041794af'
+                        user: req.user._id
                     }
-                ]
+                )
+                req.members.forEach(
+                    (id) => {
+                        membersArray.push(
+                            {
+                                user: id
+                            }
+                        )
+                    }
+                )
+                const room = Room(
+                    {
+                        name: req.body.name,
+                        members: membersArray,
+                        admin: req.user._id
+                    }
+                )
+                await room.save()
+                res.send()
+            } else {
+                res.status(404).send()
             }
-        )
-        await room.save()
-        res.send()
+        } catch (error) {
+            res.status(404).send()
+        }
     }
 )
 

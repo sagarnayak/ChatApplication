@@ -17,6 +17,7 @@ const {
     sendAvatarUpdatedNotification,
     sendPingBackNotification
 } = require('../../firebase/cloudMessage')
+const mongoose = require('mongoose')
 
 router.post(
     '/signup',
@@ -349,6 +350,60 @@ router.get(
                 timeStamp: req.user.updatedAt
             }
         )
+    }
+)
+
+router.post(
+    '/searchUser',
+    auth,
+    async (req, res) => {
+        try {
+            if (
+                req.body.containing &&
+                req.body.limit &&
+                req.body.skip
+            ) {
+                let query
+                if (req.body.alreadyUsed) {
+                    query = User.find(
+                        {
+                            name: RegExp(req.body.containing, 'i'),
+                            _id: {
+                                $nin: req.body.alreadyUsed
+                            }
+                        }
+                    )
+                        .limit(
+                            parseInt(req.body.limit)
+                        )
+                        .skip(
+                            parseInt(req.body.skip)
+                        )
+                } else {
+                    query = User.find(
+                        {
+                            name: RegExp(req.body.containing, 'i')
+                        }
+                    )
+                        .limit(
+                            parseInt(req.body.limit)
+                        )
+                        .skip(
+                            parseInt(req.body.skip)
+                        )
+                }
+
+                const users = await query.exec()
+                if (users.length == 0) {
+                    return res.status(204).send()
+                }
+                res.send(users)
+            } else {
+                res.status(404).send()
+            }
+        } catch (error) {
+            res.status(404).send()
+        }
     }
 )
 

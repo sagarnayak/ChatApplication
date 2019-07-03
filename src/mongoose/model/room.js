@@ -7,6 +7,10 @@ const RoomSchema = mongoose.Schema(
             required: true,
             trim: true
         },
+        admin: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true
+        },
         members: [
             {
                 user: {
