@@ -107,18 +107,25 @@ router.post(
                 req.body.members
             ) {
                 const membersArray = []
+                const alreadyAddedMembers = []
                 membersArray.push(
                     {
-                        user: req.user._id
+                        user: req.user._id.toString()
                     }
                 )
-                req.members.forEach(
+                alreadyAddedMembers.push(req.user._id.toString())
+                req.body.members.forEach(
                     (id) => {
-                        membersArray.push(
-                            {
-                                user: id
-                            }
-                        )
+                        if (
+                            !alreadyAddedMembers.includes(id)
+                        ) {
+                            membersArray.push(
+                                {
+                                    user: id
+                                }
+                            )
+                            alreadyAddedMembers.push(id)
+                        }
                     }
                 )
                 const room = Room(
@@ -131,10 +138,10 @@ router.post(
                 await room.save()
                 res.send()
             } else {
-                res.status(404).send()
+                res.status(400).send()
             }
         } catch (error) {
-            res.status(404).send()
+            res.status(400).send()
         }
     }
 )

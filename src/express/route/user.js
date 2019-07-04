@@ -363,6 +363,14 @@ router.post(
                 req.body.limit &&
                 req.body.skip
             ) {
+                if (
+                    !req.body.alreadyUsed
+                ) {
+                    req.body.alreadyUsed = []
+                }
+                req.body.alreadyUsed.push(
+                    req.user._id.toString()
+                )
                 let query
                 if (req.body.alreadyUsed) {
                     query = User.find(
@@ -371,18 +379,6 @@ router.post(
                             _id: {
                                 $nin: req.body.alreadyUsed
                             }
-                        }
-                    )
-                        .limit(
-                            parseInt(req.body.limit)
-                        )
-                        .skip(
-                            parseInt(req.body.skip)
-                        )
-                } else {
-                    query = User.find(
-                        {
-                            name: RegExp(req.body.containing, 'i')
                         }
                     )
                         .limit(
