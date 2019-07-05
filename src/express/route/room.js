@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const auth = require('../middleware/auth')
 const Room = require('../../mongoose/model/room')
+const { createGenericError } = require('../../util/errorMaster')
 
 router.get(
     '/getRooms',
@@ -141,6 +142,70 @@ router.post(
                 res.status(400).send()
             }
         } catch (error) {
+            res.status(400).send()
+        }
+    }
+)
+
+router.get(
+    '/leaveRoom/:roomId',
+    auth,
+    async (req, res) => {
+        try {
+            const room = await Room.findOne({ _id: req.params.roomId })
+
+            if (!room)
+                return res.status(400).send()
+
+            room.members = room.members.filter(
+                (user) => {
+                    if (
+                        user.user.toString() === req.user._id.toString()
+                    ) {
+                        return false
+                    }
+                    return true
+                }
+            )
+
+            await room.save()
+
+            res.send()
+        } catch (error) {
+            console.log(error)
+            res.status(400).send()
+        }
+    }
+)
+
+router.post(
+    '/joinRoom',
+    auth,
+    async (req, res) => {
+        try {
+            if (!req.body.roomId)
+                return res.status(400).send(createGenericError('Provide a room id'))
+
+            const room = await Room.findOne({ _id: req.body.roomId })
+
+            if (!room)
+                return res.status(400).send(createGenericError('Room not found'))
+
+            room.members.push(
+                {
+                    user: req.user._id
+                }
+            )
+
+            await room.save()
+
+            await room.populate({
+                path: 'users'
+            }).execPopulate()
+
+            res.send(room)
+        } catch (error) {
+            console.log(error)
             res.status(400).send()
         }
     }
