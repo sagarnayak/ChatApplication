@@ -7,24 +7,6 @@ const chalk = require('chalk')
 
 const connectedSockets = []
 
-const addSocketToConnectedList = (socket) => {
-    connectedSockets.push(
-        socket
-    )
-}
-
-const removeSocketFromConnectedSockets = (socket) => {
-    const index = connectedSockets.findIndex(
-        (s) => {
-            if (s.id === socket.id)
-                return true
-            return false
-        }
-    )
-
-    connectedSockets.splice(index, 1)
-}
-
 const getUserData = async (socket) => {
     const token = socket.handshake.query.token.replace('Bearer ', '')
     const decoded = await jwt.verify(token, process.env.JWT_SECRET)
@@ -33,8 +15,114 @@ const getUserData = async (socket) => {
     return user
 }
 
-const getChats = async (reqData, socket) => {
+const addSocketToConnectedList = async (socket) => {
     const user = await getUserData(socket)
+    connectedSockets.push(
+        {
+            socket,
+            userId: user._id
+        }
+    )
+}
+
+const removeSocketFromConnectedSockets = (socket) => {
+    const index = connectedSockets.findIndex(
+        (s) => {
+            if (s.socket.id === socket.id)
+                return true
+            return false
+        }
+    )
+
+    connectedSockets.splice(index, 1)
+}
+
+const getChats = async (reqData, socket) => {
+    if (
+        reqData.roomId &&
+        reqData.limit &&
+        reqData.skip
+    ) {
+        const chats = await Chat.find(
+            {
+                room: reqData.roomId
+            }
+        )
+            .limit(
+                parseInt(reqData.limit)
+            )
+            .skip(
+                parseInt(reqData.skip)
+            )
+            .sort(
+                {
+                    createdAt: 'desc'
+                }
+            )
+
+        let allPromise = []
+
+        chats.forEach(
+            async (chat) => {
+                allPromise.push(
+                    chat.populate(
+                        {
+                            path: 'authorDetail'
+                        }
+                    ).execPopulate()
+                )
+            }
+        )
+
+        console.log(chats)
+
+        Promise.all(allPromise)
+            .then(
+                (result) => {
+                    socket.emit(
+                        'newMessages',
+                        result
+                    )
+                }
+            )
+            .catch(
+                (error) => {
+                    console.log(error)
+                }
+            )
+    }
+}
+
+const getSocketForUser = (user) => {
+    let socket = connectedSockets.find(
+        (s) => {
+            if (s.userId.toString() === user._id.toString()) {
+                return true
+            }
+        }
+    )
+    return socket
+}
+
+const sendMessageToUsers = async (chat, room) => {
+    await room.populate(
+        {
+            path: 'users'
+        }
+    ).execPopulate()
+
+    room.users.forEach(
+        async (user) => {
+            const socket = getSocketForUser(user)
+
+            if (socket) {
+                socket.socket.emit(
+                    'newMessage',
+                    chat
+                )
+            }
+        }
+    )
 }
 
 const sendMessage = async (reqData, socket) => {
@@ -50,6 +138,14 @@ const sendMessage = async (reqData, socket) => {
     )
 
     await chat.save()
+
+    await chat.populate(
+        {
+            path: 'authorDetail'
+        }
+    ).execPopulate()
+
+    sendMessageToUsers(chat, room)
 }
 
 io.use(
@@ -101,7 +197,8 @@ io.on(
                 socket.join(
                     'room_' + roomId,
                     (err) => {
-                        console.log(err)
+                        if (err)
+                            console.log(err)
                     }
                 )
             }

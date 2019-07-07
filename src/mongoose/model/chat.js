@@ -37,7 +37,19 @@ const ChatSchema = mongoose.Schema(
         }
     },
     {
-        timestamps: true
+        timestamps: true,
+        toObject: { virtuals: true },
+        toJSON: { virtuals: true }
+    }
+)
+
+ChatSchema.virtual(
+    'authorDetail',
+    {
+        ref: 'User',
+        localField: 'author',
+        foreignField: '_id',
+        justOne: true
     }
 )
 
