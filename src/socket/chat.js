@@ -74,8 +74,6 @@ const getChats = async (reqData, socket) => {
             }
         )
 
-        console.log(chats)
-
         Promise.all(allPromise)
             .then(
                 (result) => {
