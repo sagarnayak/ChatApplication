@@ -264,6 +264,7 @@ router.get(
 
 router.get(
     '/profilePicture/:id',
+	auth,
     async (req, res) => {
         try {
             const user = await User.findOne({ _id: req.params.id })
