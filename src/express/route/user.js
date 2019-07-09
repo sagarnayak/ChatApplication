@@ -233,7 +233,7 @@ router.patch(
             const avatar = req.file
             if (!avatar)
                 return res.status(400).send('please upload a avatar')
-            const buffer = await sharp(avatar.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
+            const buffer = await sharp(avatar.buffer).resize({ width: 120, height: 120 }).png().toBuffer()
             req.user.avatar = buffer
             await req.user.save()
             sendAvatarUpdatedNotification(
