@@ -15,9 +15,14 @@ const sharp = require('sharp')
 const { createGenericError } = require('../../util/errorMaster')
 const {
     sendAvatarUpdatedNotification,
-    sendPingBackNotification
+    sendPingBackNotification,
+    subscribeToAvatarUpdateTopic,
+    unSubscribeToAvatarUpdateTopic,
+    sendAvatarUpdatedForUserNotification,
+    sendNewMessageNotification
 } = require('../../firebase/cloudMessage')
-const mongoose = require('mongoose')
+const {
+} = require('../../firebase/cloudMessage')
 
 router.post(
     '/signup',
@@ -134,6 +139,9 @@ router.post(
                     return token.token !== req.token
                 }
             )
+
+            unSubscribeToAvatarUpdateTopic([req.token])
+
             await user.save()
 
             res.send()
@@ -152,6 +160,15 @@ router.post(
             const user = req.user
 
             sendPingBackNotification(req.user, req.token)
+
+            let fcmTokens = []
+            req.user.tokens.forEach(
+                (token) => {
+                    if (token.fcmToken)
+                        fcmTokens.push(token.fcmToken)
+                }
+            )
+            unSubscribeToAvatarUpdateTopic(fcmTokens)
 
             user.tokens = []
             await user.save()
@@ -240,6 +257,9 @@ router.patch(
                 req.user,
                 req.token
             )
+            sendAvatarUpdatedForUserNotification(
+                req.user._id.toString()
+            )
             res.send('updated your avatar on ' + req.get('host') + '/myAvatar')
         } catch (error) {
             console.log(error)
@@ -264,7 +284,7 @@ router.get(
 
 router.get(
     '/profilePicture/:id',
-	auth,
+    auth,
     async (req, res) => {
         try {
             const user = await User.findOne({ _id: req.params.id })
@@ -284,6 +304,14 @@ router.delete(
     async (req, res) => {
         try {
             sendGoodByeEmail(req.user.email, req.user.name)
+            let fcmTokens = []
+            req.user.tokens.forEach(
+                (token) => {
+                    if (token.fcmToken)
+                        fcmTokens.push(token.fcmToken)
+                }
+            )
+            unSubscribeToAvatarUpdateTopic(fcmTokens)
             await req.user.remove()
             res.send()
         } catch (error) {
@@ -310,6 +338,7 @@ router.patch(
             if (indexToUpdate != -1) {
                 req.user.tokens[indexToUpdate].fcmToken = req.body.fcmToken
                 await req.user.save()
+                subscribeToAvatarUpdateTopic([req.body.fcmToken])
                 res.send()
             } else {
                 res.status(400).send(createGenericError('unable to update fcm token'))

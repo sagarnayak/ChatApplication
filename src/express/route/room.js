@@ -98,6 +98,37 @@ router.get(
     }
 )
 
+router.get(
+    '/getRoom/:roomId',
+    auth,
+    async (req, res) => {
+        try {
+            if (req.params.roomId) {
+                const room = await Room.findOne(
+                    {
+                        _id: req.params.roomId
+                    }
+                )
+                if (room) {
+                    await room.populate(
+                        {
+                            path: 'users'
+                        }
+                    ).execPopulate()
+                    res.send(room)
+                } else {
+                    res.status(400).send()
+                }
+            } else {
+                res.status(400).send()
+            }
+        } catch (error) {
+            console.log(error)
+            res.status(400).send()
+        }
+    }
+)
+
 router.post(
     '/createRoom',
     auth,

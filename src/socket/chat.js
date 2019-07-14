@@ -4,6 +4,10 @@ const User = require('../mongoose/model/user')
 const Room = require('../mongoose/model/room')
 const Chat = require('../mongoose/model/chat')
 const chalk = require('chalk')
+const {
+    sendNewMessageNotification
+}
+    = require('../firebase/cloudMessage')
 
 const connectedSockets = []
 
@@ -34,7 +38,8 @@ const removeSocketFromConnectedSockets = (socket) => {
         }
     )
 
-    connectedSockets.splice(index, 1)
+    if (index)
+        connectedSockets.splice(index, 1)
 }
 
 const getChats = async (reqData, socket) => {
@@ -109,14 +114,27 @@ const sendMessageToUsers = async (chat, room) => {
         }
     ).execPopulate()
 
+    io.to('room_' + room._id).emit(
+        'newMessage',
+        chat
+    )
+
     room.users.forEach(
         async (user) => {
             const socket = getSocketForUser(user)
 
             if (socket) {
-                socket.socket.emit(
-                    'newMessage',
-                    chat
+            } else {
+                user.tokens.forEach(
+                    (token) => {
+                        if (token.fcmToken) {
+                            sendNewMessageNotification(
+                                token.fcmToken,
+                                room,
+                                chat
+                            )
+                        }
+                    }
                 )
             }
         }
