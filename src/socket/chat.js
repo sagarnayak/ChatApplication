@@ -123,8 +123,13 @@ const sendMessageToUsers = async (chat, room) => {
         async (user) => {
             const socket = getSocketForUser(user)
 
+            const name = user.name
+
             if (socket) {
+                console.log('socket found for : ' + name)
             } else {
+                console.log('socket not found for : ' + name)
+
                 user.tokens.forEach(
                     (token) => {
                         if (token.fcmToken) {
@@ -238,8 +243,6 @@ io.on(
             'sendNewMessage',
             (req) => {
                 const reqData = JSON.parse(req)
-
-                console.log(reqData)
 
                 sendMessage(
                     reqData,
