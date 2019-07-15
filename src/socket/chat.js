@@ -30,7 +30,7 @@ const addSocketToConnectedList = async (socket) => {
 
     connectedSockets.forEach(
         (connectedSocket) => {
-            console.log(connectedSocketsocket..id, '::', connectedSocket.userId)
+            console.log(connectedSocketsocket.id, '::', connectedSocket.userId)
         }
     )
 }
