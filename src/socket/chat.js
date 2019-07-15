@@ -27,16 +27,9 @@ const addSocketToConnectedList = async (socket) => {
             userId: user._id
         }
     )
-
-    connectedSockets.forEach(
-        (connectedSocket) => {
-            console.log(connectedSocket.socket.id, '::', connectedSocket.userId)
-        }
-    )
 }
 
 const removeSocketFromConnectedSockets = (socket) => {
-    console.log('going to remove socket : ', socket.id)
     const index = connectedSockets.findIndex(
         (s) => {
             if (s.socket.id === socket.id)
@@ -50,12 +43,6 @@ const removeSocketFromConnectedSockets = (socket) => {
     } catch (err) {
         console.log(err)
     }
-
-    connectedSockets.forEach(
-        (connectedSocket) => {
-            console.log(connectedSocket.socket.id, '::', connectedSocket.userId)
-        }
-    )
 }
 
 const getChats = async (reqData, socket) => {
@@ -139,13 +126,8 @@ const sendMessageToUsers = async (chat, room) => {
         async (user) => {
             const socket = getSocketForUser(user)
 
-            const name = user.name
-
             if (socket) {
-                console.log('socket found for : ' + name)
             } else {
-                console.log('socket not found for : ' + name)
-
                 user.tokens.forEach(
                     (token) => {
                         if (token.fcmToken) {
