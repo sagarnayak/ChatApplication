@@ -122,18 +122,17 @@ const sendNewMessageNotification = (fcmId, room, chat) => {
         data: {
             operationType: 'newMessage',
             roomName: room.name,
-            roomId: room._id,
+            roomId: room._id.toString(),
             message: chat.message,
-            authorId: chat.author,
+            authorId: chat.author.toString(),
             authorName: chat.authorDetail.name,
-            createdAt: chat.createdAt
+            createdAt: chat.createdAt.toUTCString()
         }
     }
 
     admin.messaging().send(message)
         .then(
             function (response) {
-                console.log(response)
             }
         )
         .catch(
@@ -143,11 +142,37 @@ const sendNewMessageNotification = (fcmId, room, chat) => {
         )
 }
 
+const readAllNotificationForRoomNotification = (fcmIds, roomId) => {
+    fcmIds.forEach(
+        (fcmId) => {
+            const message = {
+                token: fcmId,
+                data: {
+                    operationType: 'messageReadForRoom',
+                    roomId
+                }
+            }
+
+            admin.messaging().send(message)
+                .then(
+                    function (response) {
+                    }
+                )
+                .catch(
+                    function (error) {
+                        console.log(error)
+                    }
+                )
+        }
+    )
+}
+
 module.exports = {
     sendAvatarUpdatedNotification,
     sendPingBackNotification,
     subscribeToAvatarUpdateTopic,
     unSubscribeToAvatarUpdateTopic,
     sendAvatarUpdatedForUserNotification,
-    sendNewMessageNotification
+    sendNewMessageNotification,
+    readAllNotificationForRoomNotification
 }

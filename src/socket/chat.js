@@ -129,7 +129,7 @@ const sendMessageToUsers = async (chat, room) => {
                     (token) => {
                         if (token.fcmToken) {
                             sendNewMessageNotification(
-                                token.fcmToken,
+                                token.fcmToken.toString(),
                                 room,
                                 chat
                             )
@@ -141,9 +141,12 @@ const sendMessageToUsers = async (chat, room) => {
     )
 }
 
-const sendMessage = async (reqData, socket) => {
+const sendMessage = async (reqData, socket, shouldDisconnectAfterUse) => {
     const room = await Room.findOne({ _id: reqData.roomId })
     const user = await getUserData(socket)
+
+    if (shouldDisconnectAfterUse)
+        socket.disconnect()
 
     const chat = Chat(
         {
@@ -238,7 +241,21 @@ io.on(
 
                 sendMessage(
                     reqData,
-                    socket
+                    socket,
+                    false
+                )
+            }
+        )
+
+        socket.on(
+            'sendNewMessageAndDisconnect',
+            (req) => {
+                const reqData = JSON.parse(req)
+
+                sendMessage(
+                    reqData,
+                    socket,
+                    true
                 )
             }
         )
