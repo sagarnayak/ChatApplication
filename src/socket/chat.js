@@ -36,6 +36,7 @@ const addSocketToConnectedList = async (socket) => {
 }
 
 const removeSocketFromConnectedSockets = (socket) => {
+    console.log('going to remove socket : ', socket.id)
     const index = connectedSockets.findIndex(
         (s) => {
             if (s.socket.id === socket.id)
@@ -44,8 +45,11 @@ const removeSocketFromConnectedSockets = (socket) => {
         }
     )
 
-    if (index)
+    try {
         connectedSockets.splice(index, 1)
+    } catch (err) {
+        console.log(err)
+    }
 
     connectedSockets.forEach(
         (connectedSocket) => {

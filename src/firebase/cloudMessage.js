@@ -130,12 +130,9 @@ const sendNewMessageNotification = (fcmId, room, chat) => {
         }
     }
 
-    console.log(message)
-
     admin.messaging().send(message)
         .then(
             function (response) {
-                console.log(response)
             }
         )
         .catch(
