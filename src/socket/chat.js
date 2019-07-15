@@ -49,7 +49,7 @@ const removeSocketFromConnectedSockets = (socket) => {
 
     connectedSockets.forEach(
         (connectedSocket) => {
-            console.log(connectedSocketsocket..id, '::', connectedSocket.userId)
+            console.log(connectedSocketsocket.id, '::', connectedSocket.userId)
         }
     )
 }
