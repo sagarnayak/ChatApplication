@@ -30,7 +30,7 @@ const addSocketToConnectedList = async (socket) => {
 
     connectedSockets.forEach(
         (connectedSocket) => {
-            console.log(connectedSocket.id, '::', connectedSocket.userId)
+            console.log(connectedSocketsocket..id, '::', connectedSocket.userId)
         }
     )
 }
@@ -46,6 +46,12 @@ const removeSocketFromConnectedSockets = (socket) => {
 
     if (index)
         connectedSockets.splice(index, 1)
+
+    connectedSockets.forEach(
+        (connectedSocket) => {
+            console.log(connectedSocketsocket..id, '::', connectedSocket.userId)
+        }
+    )
 }
 
 const getChats = async (reqData, socket) => {
