@@ -239,6 +239,8 @@ io.on(
             (req) => {
                 const reqData = JSON.parse(req)
 
+                console.log(reqData)
+
                 sendMessage(
                     reqData,
                     socket,
