@@ -275,11 +275,9 @@ router.get(
     '/myAvatar',
     auth,
     (req, res) => {
-        console.log('got req for user avatar')
         if (!req.user.avatar)
             return res.status(404).send()
-
-        console.log('sending the avatar')
+            
         res.set('Content-Type', 'image/png').send(req.user.avatar)
     }
 )
