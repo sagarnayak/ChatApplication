@@ -273,6 +273,7 @@ router.patch(
 
 router.get(
     '/myAvatar',
+    auth,
     (req, res) => {
         console.log('got req for user avatar')
         if (!req.user.avatar)
