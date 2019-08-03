@@ -253,6 +253,8 @@ router.patch(
             const buffer = await sharp(avatar.buffer).resize({ width: 120, height: 120 }).png().toBuffer()
             req.user.avatar = buffer
             await req.user.save()
+
+            console.log('sending the avatar update notification ', req.user, req.token)
             sendAvatarUpdatedNotification(
                 req.user,
                 req.token
@@ -277,7 +279,7 @@ router.get(
     (req, res) => {
         if (!req.user.avatar)
             return res.status(404).send()
-            
+
         res.set('Content-Type', 'image/png').send(req.user.avatar)
     }
 )

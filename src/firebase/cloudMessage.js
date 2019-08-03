@@ -108,6 +108,7 @@ const sendAvatarUpdatedForUserNotification = (userId) => {
     admin.messaging().send(message)
         .then(
             function (response) {
+                console.log(response)
             }
         )
         .catch(
