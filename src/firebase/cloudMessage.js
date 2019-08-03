@@ -34,6 +34,7 @@ const sendAvatarUpdatedNotification = (user, tokenToExclude) => {
                 admin.messaging().send(message)
                     .then(
                         function (res) {
+                            console.log(res)
                         }
                     )
                     .catch(
