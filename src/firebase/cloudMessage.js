@@ -34,7 +34,6 @@ const sendAvatarUpdatedNotification = (user, tokenToExclude) => {
                 admin.messaging().send(message)
                     .then(
                         function (res) {
-                            console.log('my avatar ', res)
                         }
                     )
                     .catch(
@@ -79,7 +78,6 @@ const subscribeToAvatarUpdateTopic = (fcmIds) => {
         TOPIC_AVATAR_UPDATED
     )
         .then(function (response) {
-            console.log('subscribed for ', fcmIds)
         })
         .catch(function (error) {
             console.log('Error subscribing to topic:', error);
