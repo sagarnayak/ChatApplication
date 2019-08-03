@@ -79,6 +79,7 @@ const subscribeToAvatarUpdateTopic = (fcmIds) => {
         TOPIC_AVATAR_UPDATED
     )
         .then(function (response) {
+            console.log('subscribed for ', fcmIds)
         })
         .catch(function (error) {
             console.log('Error subscribing to topic:', error);
@@ -108,7 +109,6 @@ const sendAvatarUpdatedForUserNotification = (userId) => {
     admin.messaging().send(message)
         .then(
             function (response) {
-                console.log('for user : ', response)
             }
         )
         .catch(
