@@ -254,7 +254,6 @@ router.patch(
             req.user.avatar = buffer
             await req.user.save()
 
-            console.log('sending the avatar update notification ', req.user, req.token)
             sendAvatarUpdatedNotification(
                 req.user,
                 req.token

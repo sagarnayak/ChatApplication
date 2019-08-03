@@ -34,7 +34,7 @@ const sendAvatarUpdatedNotification = (user, tokenToExclude) => {
                 admin.messaging().send(message)
                     .then(
                         function (res) {
-                            console.log(res)
+                            console.log('my avatar ', res)
                         }
                     )
                     .catch(
@@ -108,7 +108,7 @@ const sendAvatarUpdatedForUserNotification = (userId) => {
     admin.messaging().send(message)
         .then(
             function (response) {
-                console.log(response)
+                console.log('for user : ', response)
             }
         )
         .catch(
